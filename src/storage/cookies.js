@@ -1,5 +1,5 @@
+import { VOID_CALLBACKS } from "./constants";
 
-const VOID_CALLBACKS = { done: (d) => { }, error: (d) => { } }
 
 /**
  * @typedef {Object} CookieConfig
