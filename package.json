@@ -1,0 +1,31 @@
+{
+  "name": "web-interfaces",
+  "version": "0.0.1",
+  "description": "collection of browser interfaces",
+  "keywords": [
+    "browser",
+    "api"
+  ],
+  "homepage": "https://github.com/OliverStrait/web-interfaces#readme",
+  "bugs": {
+    "url": "https://github.com/OliverStrait/web-interfaces/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/OliverStrait/web-interfaces.git"
+  },
+  "exports": {
+    ".": "./src/index.js",
+    "./storage": "./src/storage/*"
+  },
+  "license": "MIT",
+  "author": "Olli Salmela",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "test": "vitest"
+  },
+  "devDependencies": {
+    "vitest": "^5.1.0"
+  }
+}

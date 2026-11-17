@@ -1,0 +1,44 @@
+
+const VOID_CALLBACKS = { done: (d) => { }, error: (d) => { } }
+
+/**
+ * @typedef {Object} CookieConfig
+ * @property {Date} expires - Expiration time of the cookie
+ * @property {"strict" | "lax" | "none"} [sameSite="lax"] - Optional string selection with a default.
+ * @property {number} [maxAge] - Optional lifespan in seconds.
+ */
+
+
+/** Cookie service abstraction that interface with stated name */
+export default class CookieService {
+    /**
+     * @var {string} #name Name of cookieStorage
+     */
+    #name;
+    #options;
+    /**
+     * Secure cookie storage
+     * @param {string } name identifier of the cookie
+     * @param {CookieConfig} options
+     */
+    constructor(name, options) {
+        this.#name = name
+        this.#options = { ...options, name: this.#name }
+    }
+
+    /**Write data to  */
+    write(data, callbacks = VOID_CALLBACKS) {
+        const value = typeof data === "string" ? data : JSON.stringify(data)
+        return cookieStore.set({ value, ...this.#options })
+            .then((d) => callbacks.done(d))
+            .catch((d) => callbacks.error(d))
+    }
+    read(callbacks = VOID_CALLBACKS) {
+        return cookieStore.get(this.#name)
+            .then((d) => callbacks.done(d))
+            .catch((d) => callbacks.error(d))
+    }
+    remove() {
+        return cookieStore.delete(this.#name)
+    }
+}
