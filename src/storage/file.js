@@ -1,5 +1,21 @@
 import { LocalDb } from "./db.js";
 
+/**
+ * @typedef {Object} FilePickerAcceptType
+ * @property {Record<string, string[]>} accept
+ * @property {string} [description]
+ */
+
+/**
+ * @typedef {Object} FilePickerOptions
+ * @property {string} [id]
+ * @property {*} [startIn]
+ * @property {string} [suggestedName]
+ * @property {boolean} [excludeAcceptAllOption]
+ * @property {FilePickerAcceptType[]} [types]
+ * @property {boolean} [multiple]
+ */
+
 class FileStorage {
     #settings;
     #picker_options;
@@ -7,7 +23,7 @@ class FileStorage {
     /**
      * @param {string} db_name IndexedDB database name
      * @param {string} setting_name Object store used to persist the file handle
-     * @param {SaveFilePickerOptions} [picker_options]
+     * @param {FilePickerOptions} [picker_options]
      */
     constructor(db_name, setting_name, picker_options = {}) {
         this.#settings = new LocalDb(db_name, setting_name);
@@ -15,11 +31,12 @@ class FileStorage {
     }
 
     async #selectFile() {
-        if (typeof globalThis.showSaveFilePicker !== "function") {
+        const browser = /** @type {any} */ (globalThis);
+        if (typeof browser.showSaveFilePicker !== "function") {
             throw new Error("The File System Access API is not available in this browser or secure context");
         }
 
-        const handle = await globalThis.showSaveFilePicker(this.#picker_options);
+        const handle = await browser.showSaveFilePicker(this.#picker_options);
         await this.#settings.write(handle);
         return handle;
     }
@@ -46,11 +63,12 @@ class FileStorage {
     }
 
     async #selectReadFile() {
-        if (typeof globalThis.showOpenFilePicker !== "function") {
+        const browser = /** @type {any} */ (globalThis);
+        if (typeof browser.showOpenFilePicker !== "function") {
             return this.#legacyRead();
         }
 
-        const [handle] = await globalThis.showOpenFilePicker({
+        const [handle] = await browser.showOpenFilePicker({
             multiple: false,
             excludeAcceptAllOption: this.#picker_options.excludeAcceptAllOption,
             id: this.#picker_options.id,
@@ -84,9 +102,10 @@ class FileStorage {
 
     #legacyRead() {
         return new Promise((resolve, reject) => {
+            const browser = /** @type {any} */ (globalThis);
             if (
-                typeof globalThis.document?.createElement !== "function"
-                || typeof globalThis.Blob !== "function"
+                typeof browser.document?.createElement !== "function"
+                || typeof browser.Blob !== "function"
             ) {
                 reject(new Error("The browser does not support reading files"));
                 return;
@@ -104,7 +123,7 @@ class FileStorage {
             };
             const abort = () => {
                 cleanup();
-                if (typeof globalThis.DOMException === "function") {
+                if (typeof browser.DOMException === "function") {
                     reject(new DOMException("The file selection was cancelled", "AbortError"));
                 } else {
                     const error = new Error("The file selection was cancelled");
@@ -138,17 +157,22 @@ class FileStorage {
             .join(",");
     }
 
+    /**
+     * @param {string | Blob | BufferSource} data
+     * @returns {string}
+     */
     #legacyWrite(data) {
+        const browser = /** @type {any} */ (globalThis);
         if (
-            typeof globalThis.document?.createElement !== "function"
-            || typeof globalThis.URL?.createObjectURL !== "function"
-            || typeof globalThis.Blob !== "function"
+            typeof browser.document?.createElement !== "function"
+            || typeof browser.URL?.createObjectURL !== "function"
+            || typeof browser.Blob !== "function"
         ) {
             throw new Error("The browser does not support creating downloadable files");
         }
 
         let blob;
-        if (typeof Blob !== "undefined" && data instanceof Blob) {
+        if (typeof browser.Blob !== "undefined" && data instanceof browser.Blob) {
             blob = data;
         } else {
             let type = "";
@@ -156,7 +180,7 @@ class FileStorage {
             if (type_accept) {
                 type = Object.keys(type_accept)[0] ?? "";
             }
-            blob = new Blob([data], type ? { type } : undefined);
+            blob = new browser.Blob([data], type ? { type } : undefined);
         }
 
         const object_url = URL.createObjectURL(blob);
@@ -188,7 +212,8 @@ class FileStorage {
      * @returns {Promise<string>} The saved filename
      */
     async write(data) {
-        if (typeof globalThis.showSaveFilePicker !== "function") {
+        const browser = /** @type {any} */ (globalThis);
+        if (typeof browser.showSaveFilePicker !== "function") {
             return this.#legacyWrite(data);
         }
 
@@ -219,8 +244,9 @@ class FileStorage {
      * @returns {Promise<string | ArrayBuffer | Blob>}
      */
     async read(format = "text") {
+        const browser = /** @type {any} */ (globalThis);
         let file;
-        if (typeof globalThis.showOpenFilePicker === "function") {
+        if (typeof browser.showOpenFilePicker === "function") {
             const handle = await this.#getReadableFileHandle();
             file = await handle.getFile();
         } else {

@@ -23,9 +23,15 @@
   "type": "module",
   "main": "index.js",
   "scripts": {
-    "test": "vitest"
+    "test": "vitest",
+    "test:once": "vitest run",
+    "build:types": "tsc",
+    "prebuild": "npm run test:once",
+    "build": "npm run build:types && git add types",
+    "post": "git push && git push --tags"
   },
   "devDependencies": {
-    "vitest": "^5.1.0"
+    "typescript": "^7.0.2",
+    "vitest": "^5.1.1"
   }
 }

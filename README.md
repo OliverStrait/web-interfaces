@@ -8,3 +8,17 @@
     - To avoid binding to unvanted use of Interfaces, there should be limited  public methods and private information should be stated as such.
 - Documentation
     - Every interface should be documented using either strict types or type hints and Human readable description
+
+## Build version
+
+```bash
+npm run prebuild
+npm run build
+
+# Commit changes if build has no errors
+# run version bump  patch, minor, majos
+npm version patch
+
+# publish to repository. Use
+npm run post
+```

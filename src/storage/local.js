@@ -1,12 +1,12 @@
-import { VOID_CALLBACKS } from "./constants";
+import { VOID_CALLBACKS } from "./constants.js";
 
 
 
 /**
  * @typedef {Object} CallbackSetStorage
- * @property {(Object)=> void} done - Succesfull data
- * @property {error:(Error)=> void} error - unSuccesfullerro state
-
+ * @property {import("./constants.js").DataCallback} done
+ * @property {import("./constants.js").DataCallback} error
+ */
 
 /** SetStorage is a localStorage interface to save Set into local storage
  * and have fast access to set in runtime
@@ -21,8 +21,7 @@ class SetStorage {
     /**
      * @param {*} slug keyslug for the storage
      * @param {*} name Human Readable name for the storage
-     * @param {{save:string, fetch:string}} errors  error message, {name} 
-     * * @param {CallbackSetStorage} callbacks 
+     * @param {CallbackSetStorage} [callbacks]
      */
     constructor(slug, name, callbacks = VOID_CALLBACKS) {
         this.#keySlug = slug;
@@ -35,7 +34,7 @@ class SetStorage {
     /** Read whole set from storage.
      * 
      * @param {CallbackSetStorage} callbacks 
-     * @returns {(a)=> void}
+     * @returns {Promise<*>}
      */
     async get(callbacks = VOID_CALLBACKS) {
         try {
@@ -55,8 +54,8 @@ class SetStorage {
     /** If value is not in set, value added, otherwise removed
      * 
      * @param {string} data 
-     * @param {CallbackSetStorage} callback
-     * @returns {(Set)=> void | (Error)=> void}
+     * @param {CallbackSetStorage} callbacks
+     * @returns {Promise<*>}
      */
     async flipset(data, callbacks = VOID_CALLBACKS) {
         if (this.data.has(data)) {
@@ -69,18 +68,17 @@ class SetStorage {
     }
     /** Save data into storage
      * 
-     * @param {string} data 
-     * @param {CallbackSetStorage} callback
-     * @returns {(Set)=> void | (Error)=> void}
+     * @param {CallbackSetStorage} callbacks
+     * @returns {Promise<*>}
      */
-    async saveStorage(callback = VOID_CALLBACKS) {
+    async saveStorage(callbacks = VOID_CALLBACKS) {
         try {
             window.localStorage.setItem(this.#keySlug, JSON.stringify([...this.data]));
-            return callback.done(this.data)
+            return callbacks.done(this.data)
         }
         catch (e) {
             console.log(e)
-            return callback.error(e)
+            return callbacks.error(e)
         }
     }
 
@@ -88,8 +86,8 @@ class SetStorage {
      * Set is returned in either case
      * 
      * @param {any} data 
-     * @param {CallbackSetStorage} callback ,
-     * @returns {(Set)=> void | (Error)=> void}
+     * @param {CallbackSetStorage} callbacks
+     * @returns {Promise<*>}
      */
     async add(data, callbacks = VOID_CALLBACKS) {
         try {

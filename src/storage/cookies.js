@@ -1,9 +1,9 @@
-import { VOID_CALLBACKS } from "./constants";
+import { VOID_CALLBACKS } from "./constants.js";
 
 
 /**
  * @typedef {Object} CookieConfig
- * @property {Date} expires - Expiration time of the cookie
+ * @property {number} expires - Expiration time as a DOM timestamp
  * @property {"strict" | "lax" | "none"} [sameSite="lax"] - Optional string selection with a default.
  * @property {number} [maxAge] - Optional lifespan in seconds.
  */
@@ -25,8 +25,11 @@ export default class CookieService {
         this.#name = name
         this.#options = { ...options, name: this.#name }
     }
-
-    /**Write data to  */
+    /**
+     * @param {*} data
+     * @param {{done: import("./constants.js").DataCallback, error: import("./constants.js").DataCallback}} [callbacks]
+     * @returns {Promise<*>}
+     */
     write(data, callbacks = VOID_CALLBACKS) {
         const value = typeof data === "string" ? data : JSON.stringify(data)
         return cookieStore.set({ value, ...this.#options })

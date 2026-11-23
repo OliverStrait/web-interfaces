@@ -15,12 +15,14 @@ class LocalDb {
         this.#db_version = db_version;
     }
 
+    /** @returns {Promise<IDBDatabase>} */
     async #open() {
         if (typeof indexedDB === "undefined") {
             throw new Error("IndexedDB is not available");
         }
 
         return new Promise((resolve, reject) => {
+            /** @type {IDBOpenDBRequest} */
             let request;
             try {
                 request = indexedDB.open(this.#db_name, this.#db_version);
@@ -40,19 +42,27 @@ class LocalDb {
         });
     }
 
+    /**
+     * @param {IDBTransactionMode} mode
+     * @param {(store: IDBObjectStore) => IDBRequest} operation
+     * @returns {Promise<any>}
+     */
     async #run(mode, operation) {
         const db = await this.#open();
 
         return new Promise((resolve, reject) => {
-            let transaction;
+            /** @type {IDBTransaction | undefined} */
+            var transaction;
+            /** @type {IDBRequest | undefined} */
             let request;
+            /** @type {any} */
             let result;
 
             try {
                 transaction = db.transaction(this.#data_name, mode);
                 request = operation(transaction.objectStore(this.#data_name));
                 request.onsuccess = () => {
-                    result = request.result;
+                    result = request?.result;
                 };
                 transaction.oncomplete = () => {
                     db.close();
@@ -60,10 +70,10 @@ class LocalDb {
                 };
                 transaction.onabort = () => {
                     db.close();
-                    reject(transaction.error ?? request.error ?? new Error("IndexedDB transaction aborted"));
+                    reject(transaction?.error ?? request?.error ?? new Error("IndexedDB transaction aborted"));
                 };
                 transaction.onerror = () => {
-                    reject(transaction.error ?? request.error ?? new Error("IndexedDB transaction failed"));
+                    reject(transaction?.error ?? request?.error ?? new Error("IndexedDB transaction failed"));
                 };
             } catch (error) {
                 db.close();
@@ -81,6 +91,7 @@ class LocalDb {
     }
 
     /** Write or replace the stored value. */
+    /** @param {*} data */
     async write(data) {
         return this.#run("readwrite", store => store.put(data, "value"));
     }
