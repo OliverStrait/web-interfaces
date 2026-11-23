@@ -16,7 +16,10 @@
   },
   "exports": {
     ".": "./src/index.js",
-    "./storage/*": "./src/storage/*"
+    "./storage/*": {
+      "types": "./types/storage/*.d.ts",
+      "import": "./src/storage/*.js"
+    }
   },
   "license": "MIT",
   "author": "Olli Salmela",
